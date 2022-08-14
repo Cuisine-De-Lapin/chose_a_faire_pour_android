@@ -5,6 +5,7 @@ import cuisine.de.lapin.choseafaire.model.FlipDataModel
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.Query
 
 interface MainService {
 
@@ -14,6 +15,6 @@ interface MainService {
 
     @Headers("Content-Type: application/json")
     @GET("mockflip.json")
-    fun getFlipResult(): Call<FlipDataModel>
+    fun getFlipResult(@Query("isHead") isHead: Boolean): Call<FlipDataModel>
 }
 
