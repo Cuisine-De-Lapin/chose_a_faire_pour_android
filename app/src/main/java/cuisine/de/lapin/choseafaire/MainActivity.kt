@@ -20,9 +20,11 @@ import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import cuisine.de.lapin.choseafaire.database.AppDataBase
 import cuisine.de.lapin.choseafaire.datastore.LogInDataStore
+import cuisine.de.lapin.choseafaire.repository.ToDoRepository
 import cuisine.de.lapin.choseafaire.ui.theme.ChoseAFairePourAndroidTheme
 import cuisine.de.lapin.choseafaire.viewmodel.MainViewModel
 import cuisine.de.lapin.choseafaire.viewmodel.ToDoListViewModel
+import cuisine.de.lapin.choseafaire.viewmodel.ToDoListViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,13 +33,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: MainViewModel by viewModels()
-//    private val todoViewModel: ToDoListViewModel by viewModels {
-//        AppDataBase.getDatabase(this).todoListDao()
-//    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val viewModel: MainViewModel by viewModels()
+        val todoViewModel: ToDoListViewModel by viewModels {
+            ToDoListViewModelFactory(ToDoRepository(AppDataBase.getDatabase(this).todoListDao()))
+        }
 
         viewModel.getMainData()
         viewModel.getWeatherData()
@@ -51,16 +53,15 @@ class MainActivity : ComponentActivity() {
                 if (loginName.value.isNullOrEmpty()) {
                     Entrance(logInDataStore, lifecycleScope)
                 } else {
-                    ShowMain(viewModel = viewModel, loginName.value ?: "")
+                    ShowMain(viewModel = viewModel, todoViewModel = todoViewModel, loginName.value ?: "")
                 }
-//                ShowMain(viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun ShowMain(viewModel: MainViewModel, userName: String) {
+fun ShowMain(viewModel: MainViewModel, todoViewModel: ToDoListViewModel, userName: String) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colors.background
@@ -69,7 +70,7 @@ fun ShowMain(viewModel: MainViewModel, userName: String) {
             TopUI(userName)
             WeatherInfo(viewModel = viewModel)
             Quote(viewModel = viewModel)
-            ToDoList()
+            ToDoList(todoViewModel)
             Buinance(viewModel)
         }
     }
@@ -131,7 +132,7 @@ fun ShowClock(date: Date) {
 fun ColumnScope.WeatherInfo(viewModel: MainViewModel) {
     val weather by viewModel.weatherData.observeAsState()
     Text(
-        text = "${weather?.name}, ${weather?.main?.temp} °C, ${weather?.weather?.get(0)?.description}",
+        text = "${weather?.main?.temp} °C, ${weather?.weather?.get(0)?.description}",
         modifier = Modifier.weight(1f)
     )
 }
@@ -147,18 +148,43 @@ fun ColumnScope.Quote(viewModel: MainViewModel) {
 }
 
 @Composable
-fun ColumnScope.ToDoList() {
-    val content by remember {
+fun ColumnScope.ToDoList(viewModel: ToDoListViewModel) {
+    var content by remember {
         mutableStateOf("")
     }
     Column(modifier = Modifier.weight(6f)) {
-        TextField(value = content, onValueChange = {}, label = {Text("Écrivez une chose à faire et appuyez sur Entrée.")})
-        Button(onClick = {  }) {
+        TextField(value = content, onValueChange = { value -> content = value}, label = {Text("Écrivez une chose à faire et appuyez sur Entrée.")})
+        Button(onClick = {
+            viewModel.insert(content)
+        }) {
             Text(text = "Continuer")
         }
+        ShowToDos(viewModel)
     }
 
 }
+
+@Composable
+fun ShowToDos(viewModel: ToDoListViewModel) {
+    val flipData = viewModel.todos.observeAsState()
+
+    flipData.value?.let {
+        LazyColumn {
+            itemsIndexed(it) { index, item ->
+                Row {
+                    Text(text = "${Gson().toJson(item)}")
+                    Button(onClick = {
+                        viewModel.delete(item)
+                    }) {
+                        Text(text = "X")
+                    }
+                }
+
+            }
+        }
+    }
+}
+
 
 @Composable
 fun ColumnScope.Buinance(viewModel: MainViewModel) {

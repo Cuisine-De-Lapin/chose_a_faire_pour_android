@@ -3,6 +3,7 @@ package cuisine.de.lapin.choseafaire.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import cuisine.de.lapin.choseafaire.model.ToDoListModel
 import cuisine.de.lapin.choseafaire.repository.ToDoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,6 +14,12 @@ class ToDoListViewModel(private val repository: ToDoRepository): ViewModel() {
     fun insert(content: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insert(content)
+        }
+    }
+
+    fun delete(toDoListModel: ToDoListModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.delete(toDoListModel)
         }
     }
 }

@@ -1,6 +1,7 @@
 package cuisine.de.lapin.choseafaire.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import cuisine.de.lapin.choseafaire.model.ToDoListModel
@@ -13,4 +14,7 @@ interface ToDoListDao {
 
     @Insert
     fun insert(toDoListModel: ToDoListModel)
+
+    @Delete
+    fun delete(toDoListModel: ToDoListModel)
 }
