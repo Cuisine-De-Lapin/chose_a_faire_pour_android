@@ -9,13 +9,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-
 class LogInDataStore(private val context: Context) {
-    // to make sure there's only one instance
-    companion object {
-        val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "loginInfo")
-        private val LOGIN_NAME_KEY = stringPreferencesKey("Login_Name")
-    }
+    private val LOGIN_NAME_KEY = stringPreferencesKey("Login_Name")
+    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "loginInfo")
 
     val getLoginName: Flow<String?> = context.dataStore.data
         .map { preferences ->
@@ -27,6 +23,4 @@ class LogInDataStore(private val context: Context) {
             preferences[LOGIN_NAME_KEY] = name
         }
     }
-
-
 }

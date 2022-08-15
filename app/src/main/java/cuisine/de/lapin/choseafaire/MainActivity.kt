@@ -9,51 +9,38 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
-import cuisine.de.lapin.choseafaire.database.AppDataBase
-import cuisine.de.lapin.choseafaire.datastore.LogInDataStore
-import cuisine.de.lapin.choseafaire.repository.ToDoRepository
 import cuisine.de.lapin.choseafaire.ui.theme.ChoseAFairePourAndroidTheme
 import cuisine.de.lapin.choseafaire.viewmodel.MainViewModel
-import cuisine.de.lapin.choseafaire.viewmodel.ToDoListViewModel
-import cuisine.de.lapin.choseafaire.viewmodel.ToDoListViewModelFactory
-import kotlinx.coroutines.CoroutineScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val viewModel: MainViewModel by viewModels()
-        val todoViewModel: ToDoListViewModel by viewModels {
-            ToDoListViewModelFactory(ToDoRepository(AppDataBase.getDatabase(this).todoListDao()))
-        }
 
         viewModel.getMainData()
         viewModel.getWeatherData()
 
-        val logInDataStore = LogInDataStore(this)
-
         setContent {
             ChoseAFairePourAndroidTheme {
-                val loginName = logInDataStore.getLoginName.collectAsState(initial = null)
+                val loginName = viewModel.getLoginName().collectAsState(initial = null)
 
                 if (loginName.value.isNullOrEmpty()) {
-                    Entrance(logInDataStore, lifecycleScope)
+                    Entrance(viewModel = viewModel)
                 } else {
-                    ShowMain(viewModel = viewModel, todoViewModel = todoViewModel, loginName.value ?: "")
+                    ShowMain(viewModel = viewModel, loginName.value ?: "")
                 }
             }
         }
@@ -61,7 +48,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ShowMain(viewModel: MainViewModel, todoViewModel: ToDoListViewModel, userName: String) {
+fun ShowMain(viewModel: MainViewModel, userName: String) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colors.background
@@ -70,14 +57,14 @@ fun ShowMain(viewModel: MainViewModel, todoViewModel: ToDoListViewModel, userNam
             TopUI(userName)
             WeatherInfo(viewModel = viewModel)
             Quote(viewModel = viewModel)
-            ToDoList(todoViewModel)
+            ToDoList(viewModel)
             Buinance(viewModel)
         }
     }
 }
 
 @Composable
-fun Entrance(logInDataStore: LogInDataStore, coroutineScope: CoroutineScope) {
+fun Entrance(viewModel: MainViewModel) {
     var text by remember {mutableStateOf("")}
     Row {
         TextField(
@@ -87,9 +74,7 @@ fun Entrance(logInDataStore: LogInDataStore, coroutineScope: CoroutineScope) {
         )
 
         Button(onClick = {
-            coroutineScope.launch {
-                logInDataStore.saveLoginName(text)
-            }
+            viewModel.saveLoginName(text)
         }) {
             Text("Log In")
         }
@@ -148,7 +133,7 @@ fun ColumnScope.Quote(viewModel: MainViewModel) {
 }
 
 @Composable
-fun ColumnScope.ToDoList(viewModel: ToDoListViewModel) {
+fun ColumnScope.ToDoList(viewModel: MainViewModel) {
     var content by remember {
         mutableStateOf("")
     }
@@ -165,7 +150,7 @@ fun ColumnScope.ToDoList(viewModel: ToDoListViewModel) {
 }
 
 @Composable
-fun ShowToDos(viewModel: ToDoListViewModel) {
+fun ShowToDos(viewModel: MainViewModel) {
     val flipData = viewModel.todos.observeAsState()
 
     flipData.value?.let {
