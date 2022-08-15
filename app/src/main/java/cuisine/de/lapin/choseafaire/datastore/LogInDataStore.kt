@@ -19,7 +19,7 @@ class LogInDataStore(private val context: Context) {
 
     val getLoginName: Flow<String?> = context.dataStore.data
         .map { preferences ->
-            preferences[LOGIN_NAME_KEY] ?: "FirstLast@gmail.com"
+            preferences[LOGIN_NAME_KEY]
         }
 
     suspend fun saveLoginName(name: String) {
