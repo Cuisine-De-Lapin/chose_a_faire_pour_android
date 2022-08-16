@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Chose A Faire Pour Android</string>
+    <string name="label_login">Comment vous appelez-vous ?</string>
+    <string name="button_login">Connexion</string>
+    <string name="welcome">Bonjour, %s</string>
+    <string name="temperature">%.2f °C</string>
+    <string name="author_quote">-%s</string>
+    <string name="label_todo">Écrivez une chose à faire et appuyez sur Entrée.</string>
+    <string name="button_todo">Continuer</string>
+    <string name="button_todo_delete">X</string>
+    <string name="buinance_head">Tête</string>
+    <string name="buinance_tail">Queue</string>
+    <string name="buinance_result">Vous avez choisi %s, IA a pris %s, %s</string>
+    <string name="buinance_success">Félicitations ! Vous avez réussi !</string>
+    <string name="buinance_fail">Je suis désolé&#8230; Vous avec échoué</string>
+    <string name="background_description">Fonds d\'écran</string>
 </resources>
